@@ -33,4 +33,5 @@ jobs:
       with:
         destination_branch: "master" # Assurez-vous que cela correspond à la branche que vous souhaitez fusionner.
         github_token: ${{ secrets.TOKEN }}
+        pr_label: "Test PR"
         pr_title: "Test PR"
