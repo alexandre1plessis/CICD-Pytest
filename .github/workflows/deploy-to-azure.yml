@@ -1,0 +1,39 @@
+# deploy-to-azure.yml
+
+name: Python CI - Deploy to Azure
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true && github.base_ref == 'master'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
+      - name: Azure deployment
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'CICD-production'
+          slot-name: 'Production'
+          publish-profile: ${{ secrets.PROD }}
+          package: .
+      - name: Sleep for 30 seconds
+        run: sleep 30
+      - name: Check deployment
+        run: |
+          URL="https://CICD-production.azurewebsites.net"
+          STATUS_CODE=$(curl --write-out "%{http_code}" --silent --output /dev/null $URL)
+          echo "Status code of $URL is $STATUS_CODE"
+          if [ "$STATUS_CODE" -ne 200 ]; then
+            echo "Deployment failed or the app is not returning a 200 OK status."
+            exit 1
+          else
+            echo "Deployment successful and the app is live!"
+          fi
